@@ -34,12 +34,6 @@ For new features, improvements and bugs fill an issue in GitHub or make a pull r
 * [Arch Linux Installation Media](https://github.com/picodotdev/alis#arch-linux-installation-media)
 * [Reference](https://github.com/picodotdev/alis#reference)
 
-### Donations
-
-If you find useful this script, you can support me with a [small donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=3PF47D5TSNL7C&currency_code=EUR) through PayPal to continue adding features, updating the script, accepting pull request and responding to any question. Also there are other ways you can contribute in the [How you can help](https://github.com/picodotdev/alis#how-you-can-help) section.
-
-[![Donate with PayPal button](https://www.paypalobjects.com/en_US/ES/i/btn/btn_donateCC_LG.gif "PayPal - The safer, easier way to pay online!")](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=3PF47D5TSNL7C&currency_code=EUR)
-
 ### Principles
 
 * Use the original Arch Linux installation media
@@ -93,8 +87,8 @@ Internet connection is required, with wireless WIFI connection see <a href="http
 ```
 #                         # Start the system with latest Arch Linux installation media
 # loadkeys [keymap]       # Load keyboard keymap, eg. loadkeys es, loadkeys us, loadkeys de
-# curl -sL https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash     # Download alis scripts
-# # curl -sL https://bit.ly/2F3CATp | bash                                                 # Alternative download URL with URL shortener
+# curl -sL https://raw.githubusercontent.com/namnv1113/alis/master/download.sh | bash     # Download alis scripts
+# # curl -sL https://bit.ly/2KVHgTX | bash                                                 # Alternative download URL with URL shortener
 # ./alis-asciinema.sh     # (Optional) Start asciinema video recording
 # vim alis.conf           # Edit configuration and change variables values with your preferences (system configuration)
 # vim alis-packages.conf  # (Optional) Edit configuration and change variables values with your preferences (packages to install)
@@ -103,20 +97,12 @@ Internet connection is required, with wireless WIFI connection see <a href="http
 # ./alis-reboot.sh        # (Optional) Reboot the system, only necessary when REBOOT="false"
 ```
 
-If you fork _alis_ repository you can host your own configuration and changes in your repository.
-
-```
-# curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash -s -- -u [github user]
-```
-
-### Packages installation
-
 After the base Arch Linux system is installed, alis can install packages with pacman, Flatpak, SDKMAN and from AUR.
 
 ```
 #                                  # After system installation start a user session
-# curl -sL https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash     # Download alis scripts
-# # curl -sL https://bit.ly/2F3CATp | bash                                                 # Alternative download URL with URL shortener
+# curl -sL https://raw.githubusercontent.com/namnv1113/alis/master/download.sh | bash     # Download alis scripts
+# # curl -sL https://bit.ly/2KVHgTX | bash                                                 # Alternative download URL with URL shortener
 # ./alis-packages-asciinema.sh     # (Optional) Start asciinema video recording
 # vim alis-packages.conf           # Edit configuration and change variables values with your preferences (packages to install)
 # ./alis-packages.sh               # Start packages installation
@@ -129,22 +115,13 @@ Boot from the latest <a href="https://www.archlinux.org/download/">original Arch
 ```
 #                                  # Start the system with latest Arch Linux installation media
 # loadkeys [keymap]                # Load keyboard keymap, eg. loadkeys es, loadkeys us, loadkeys de
-# curl -sL https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash     # Download alis scripts
-# # curl -sL https://bit.ly/2F3CATp | bash                                                 # Alternative download URL with URL shortener
+# curl -sL https://raw.githubusercontent.com/namnv1113/alis/master/download.sh | bash     # Download alis scripts
+# # curl -sL https://bit.ly/2KVHgTX | bash                                                 # Alternative download URL with URL shortenerr
 # ./alis-recovery-asciinema.sh     # (Optional) Start asciinema video recording
 # vim alis-recovery.conf           # Edit configuration and change variables values with your last installation configuration with alis (mainly device and partition scheme)
 # ./alis-recovery.sh               # Start recovery
 # ./alis-recovery-reboot.sh        # Reboot the system
 ```
-
-### How you can help
-
-* Test in VirtualBox and create an issue if something does not work, attach the main parts of the used configuration file and the error message
-* Create issues with new features
-* Send pull requests
-* Share it in social networks, forums, create a blog post or video about it
-* Send me an email, I like to read that the script is being used and is useful :). Which are your computer specs, which is your alis configuration, if is your personal or working computer, if all worked fine or some suggestion to improve the script
-* Consider to make a [small donation](https://github.com/picodotdev/alis#donations)
 
 ### Test in VirtualBox with Packer
 
