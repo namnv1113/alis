@@ -67,7 +67,7 @@ For new features, improvements and bugs fill an issue in GitHub or make a pull r
 * **Arch Linux** common and custom **packages installation**
 * Flatpak utility installation and **Flatpak packages installation**
 * SDKMAN utility installation and **SDKMAN packages installation**
-* **AUR utility** installation (yay, aurman) and **AUR packages installation**
+* **AUR utility** installation (paru, yay, aurman) and **AUR packages installation**
 * **Packages installation after base system installation** (preferred way of packages installation)
 * Script for download installation and **recovery scripts** and configuration files
 * **Retry packages download** on connection/mirror error
@@ -87,6 +87,8 @@ Internet connection is required, with wireless WIFI connection see <a href="http
 ```
 #                         # Start the system with latest Arch Linux installation media
 # loadkeys [keymap]       # Load keyboard keymap, eg. loadkeys es, loadkeys us, loadkeys de
+
+# iwctl --passphrase "[WIFI_KEY]" station [WIFI_INTERFACE] connect "[WIFI_ESSID]"          # (Optional) Connect to WIFI network. _ip link show_ to know WIFI_INTERFACE.
 # curl -sL https://raw.githubusercontent.com/namnv1113/alis/master/download.sh | bash     # Download alis scripts
 # # curl -sL https://bit.ly/2KVHgTX | bash                                                 # Alternative download URL with URL shortener
 # ./alis-asciinema.sh     # (Optional) Start asciinema video recording
@@ -115,6 +117,7 @@ Boot from the latest <a href="https://www.archlinux.org/download/">original Arch
 ```
 #                                  # Start the system with latest Arch Linux installation media
 # loadkeys [keymap]                # Load keyboard keymap, eg. loadkeys es, loadkeys us, loadkeys de
+# iwctl --passphrase "[WIFI_KEY]" station [WIFI_INTERFACE] connect "[WIFI_ESSID]"          # (Optional) Connect to WIFI network. _ip link show_ to know WIFI_INTERFACE.
 # curl -sL https://raw.githubusercontent.com/namnv1113/alis/master/download.sh | bash     # Download alis scripts
 # # curl -sL https://bit.ly/2KVHgTX | bash                                                 # Alternative download URL with URL shortenerr
 # ./alis-recovery-asciinema.sh     # (Optional) Start asciinema video recording
