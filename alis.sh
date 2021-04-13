@@ -35,6 +35,7 @@ set -e
 
 # Usage:
 # # loadkeys es
+# # iwctl --passphrase "[WIFI_KEY]" station [WIFI_INTERFACE] connect "[WIFI_ESSID]"          # (Optional) Connect to WIFI network. _ip link show_ to know WIFI_INTERFACE.
 # # curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash, curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash -s -- -u [github user], or with URL shortener curl -sL https://bit.ly/2F3CATp | bash
 # # vim alis.conf
 # # ./alis.sh
@@ -84,6 +85,8 @@ function configuration_install() {
 function sanitize_variables() {
     DEVICE=$(sanitize_variable "$DEVICE")
     PARTITION_MODE=$(sanitize_variable "$PARTITION_MODE")
+    PARTITION_CUSTOM_PARTED_UEFI=$(sanitize_variable "$PARTITION_CUSTOM_PARTED_UEFI")
+    PARTITION_CUSTOM_PARTED_BIOS=$(sanitize_variable "$PARTITION_CUSTOM_PARTED_BIOS")
     PARTITION_CUSTOMMANUAL_BOOT=$(sanitize_variable "$PARTITION_CUSTOMMANUAL_BOOT")
     PARTITION_CUSTOMMANUAL_ROOT=$(sanitize_variable "$PARTITION_CUSTOMMANUAL_ROOT")
     FILE_SYSTEM_TYPE=$(sanitize_variable "$FILE_SYSTEM_TYPE")
@@ -114,8 +117,8 @@ function check_variables() {
     check_variables_value "DEVICE" "$DEVICE"
     check_variables_boolean "DEVICE_TRIM" "$DEVICE_TRIM"
     check_variables_boolean "LVM" "$LVM"
-    check_variables_list "FILE_SYSTEM_TYPE" "$FILE_SYSTEM_TYPE" "ext4 btrfs xfs f2fs reiserfs"
     check_variables_equals "LUKS_PASSWORD" "LUKS_PASSWORD_RETYPE" "$LUKS_PASSWORD" "$LUKS_PASSWORD_RETYPE"
+    check_variables_list "FILE_SYSTEM_TYPE" "$FILE_SYSTEM_TYPE" "ext4 btrfs xfs f2fs reiserfs"
     check_variables_list "PARTITION_MODE" "$PARTITION_MODE" "auto custom manual" "true"
     if [ "$PARTITION_MODE" == "custom" ]; then
         check_variables_value "PARTITION_CUSTOM_PARTED_UEFI" "$PARTITION_CUSTOM_PARTED_UEFI"
@@ -128,6 +131,7 @@ function check_variables() {
     if [ "$LVM" == "true" ]; then
         check_variables_list "PARTITION_MODE" "$PARTITION_MODE" "auto" "true"
     fi
+    check_variables_equals "WIFI_KEY" "WIFI_KEY_RETYPE" "$WIFI_KEY" "$WIFI_KEY_RETYPE"
     check_variables_value "PING_HOSTNAME" "$PING_HOSTNAME"
     check_variables_value "PACMAN_MIRROR" "$PACMAN_MIRROR"
     check_variables_list "KERNELS" "$KERNELS" "linux-lts linux-lts-headers linux-hardened linux-hardened-headers linux-zen linux-zen-headers" "false"
@@ -314,8 +318,8 @@ function prepare() {
     configure_reflector
     configure_time
     prepare_partition
-    configure_network
     ask_passwords
+    configure_network
 }
 
 function configure_reflector() {
@@ -341,20 +345,6 @@ function prepare_partition() {
     fi
 }
 
-function configure_network() {
-    if [ -n "$WIFI_INTERFACE" ]; then
-        iwctl --passphrase "$WIFI_KEY" station $WIFI_INTERFACE connect $WIFI_ESSID
-        sleep 10
-    fi
-
-    # only one ping -c 1, ping gets stuck if -c 5
-    ping -c 1 -i 2 -W 5 -w 30 $PING_HOSTNAME
-    if [ $? -ne 0 ]; then
-        echo "Network ping check failed. Cannot continue."
-        exit
-    fi
-}
-
 function ask_passwords() {
     if [ "$LUKS_PASSWORD" == "ask" ]; then
         PASSWORD_TYPED="false"
@@ -367,6 +357,21 @@ function ask_passwords() {
                 PASSWORD_TYPED="true"
             else
                 echo "LUKS password don't match. Please, type again."
+            fi
+        done
+    fi
+
+    if [ -n "$WIFI_INTERFACE" -a "$WIFI_KEY" == "ask" ]; then
+        PASSWORD_TYPED="false"
+        while [ "$PASSWORD_TYPED" != "true" ]; do
+            read -sp 'Type WIFI key: ' WIFI_KEY
+            echo ""
+            read -sp 'Retype WIFI key: ' WIFI_KEY_RETYPE
+            echo ""
+            if [ "$WIFI_KEY" == "$WIFI_KEY_RETYPE" ]; then
+                PASSWORD_TYPED="true"
+            else
+                echo "WIFI key don't match. Please, type again."
             fi
         done
     fi
@@ -424,6 +429,20 @@ function ask_passwords() {
             done
         fi
     done
+}
+
+function configure_network() {
+    if [ -n "$WIFI_INTERFACE" ]; then
+        iwctl --passphrase "$WIFI_KEY" station $WIFI_INTERFACE connect "$WIFI_ESSID"
+        sleep 10
+    fi
+
+    # only one ping -c 1, ping gets stuck if -c 5
+    ping -c 1 -i 2 -W 5 -w 30 $PING_HOSTNAME
+    if [ $? -ne 0 ]; then
+        echo "Network ping check failed. Cannot continue."
+        exit
+    fi
 }
 
 function partition() {
@@ -1201,7 +1220,7 @@ function bootloader_grub() {
 }
 
 function bootloader_refind() {
-    pacman_install "refind-efi"
+    pacman_install "refind"
     arch-chroot /mnt refind-install
 
     arch-chroot /mnt rm /boot/refind_linux.conf
@@ -1666,24 +1685,63 @@ function pacman_install() {
 }
 
 function copy_logs() {
+    ESCAPED_LUKS_PASSWORD=$(echo "${LUKS_PASSWORD}" | sed 's/[.[\*^$()+?{|]/[\\&]/g')
+    ESCAPED_ROOT_PASSWORD=$(echo "${ROOT_PASSWORD}" | sed 's/[.[\*^$()+?{|]/[\\&]/g')
+    ESCAPED_USER_PASSWORD=$(echo "${USER_PASSWORD}" | sed 's/[.[\*^$()+?{|]/[\\&]/g')
+
     if [ -f "$CONF_FILE" ]; then
+        SOURCE_FILE="$CONF_FILE"
+        FILE="/mnt/var/log/alis/$CONF_FILE"
+
         mkdir -p /mnt/var/log/alis
-        cp "$CONF_FILE" "/mnt/var/log/alis/$CONF_FILE"
-        sed -i 's/LUKS_PASSWORD=.*/LUKS_PASSWORD="ask"/' "/mnt/var/log/alis/$CONF_FILE"
-        sed -i 's/LUKS_PASSWORD_RETYPE=.*/LUKS_PASSWORD_RETYPE="ask"/' "/mnt/var/log/alis/$CONF_FILE"
-        sed -i 's/ROOT_PASSWORD=.*/ROOT_PASSWORD="ask"/' "/mnt/var/log/alis/$CONF_FILE"
-        sed -i 's/ROOT_PASSWORD_RETYPE=.*/ROOT_PASSWORD_RETYPE="ask"/' "/mnt/var/log/alis/$CONF_FILE"
-        sed -i 's/USER_PASSWORD=.*/USER_PASSWORD="ask"/' "/mnt/var/log/alis/$CONF_FILE"
-        sed -i 's/USER_PASSWORD_RETYPE=.*/USER_PASSWORD_RETYPE="ask"/' "/mnt/var/log/alis/$CONF_FILE"
-        sed -i 's/ADDITIONAL_USERS=.*"/ADDITIONAL_USERS=()/' "/mnt/var/log/alis/$CONF_FILE"
+        cp "$SOURCE_FILE" "$FILE"
+        chown root:root "$FILE"
+        chmod 600 "$FILE"
+        if [ -n "$ESCAPED_LUKS_PASSWORD" ]; then
+            sed -i "s/${ESCAPED_LUKS_PASSWORD}/******/g" "$FILE"
+        fi
+        if [ -n "$ESCAPED_ROOT_PASSWORD" ]; then
+            sed -i "s/${ESCAPED_ROOT_PASSWORD}/******/g" "$FILE"
+        fi
+        if [ -n "$ESCAPED_USER_PASSWORD" ]; then
+            sed -i "s/${ESCAPED_USER_PASSWORD}/******/g" "$FILE"
+        fi
     fi
     if [ -f "$LOG_FILE" ]; then
+        SOURCE_FILE="$LOG_FILE"
+        FILE="/mnt/var/log/alis/$LOG_FILE"
+
         mkdir -p /mnt/var/log/alis
-        cp "$LOG_FILE" "/mnt/var/log/alis/$LOG_FILE"
+        cp "$SOURCE_FILE" "$FILE"
+        chown root:root "$FILE"
+        chmod 600 "$FILE"
+        if [ -n "$ESCAPED_LUKS_PASSWORD" ]; then
+            sed -i "s/${ESCAPED_LUKS_PASSWORD}/******/g" "$FILE"
+        fi
+        if [ -n "$ESCAPED_ROOT_PASSWORD" ]; then
+            sed -i "s/${ESCAPED_ROOT_PASSWORD}/******/g" "$FILE"
+        fi
+        if [ -n "$ESCAPED_USER_PASWORD" ]; then
+            sed -i "s/${ESCAPED_USER_PASSWORD}/******/g" "$FILE"
+        fi
     fi
     if [ -f "$ASCIINEMA_FILE" ]; then
+        SOURCE_FILE="$ASCIINEMA_FILE"
+        FILE="/mnt/var/log/alis/$ASCIINEMA_FILE"
+
         mkdir -p /mnt/var/log/alis
-        cp "$ASCIINEMA_FILE" "/mnt/var/log/alis/$ASCIINEMA_FILE"
+        cp "$SOURCE_FILE" "$FILE"
+        chown root:root "$FILE"
+        chmod 600 "$FILE"
+        if [ -n "$ESCAPED_LUKS_PASSWORD" ]; then
+            sed -i "s/${ESCAPED_LUKS_PASSWORD}/******/g" "$FILE"
+        fi
+        if [ -n "$ESCAPED_ROOT_PASSWORD" ]; then
+            sed -i "s/${ESCAPED_ROOT_PASSWORD}/******/g" "$FILE"
+        fi
+        if [ -n "$ESCAPED_USER_PASSWORD" ]; then
+            sed -i "s/${ESCAPED_USER_PASSWORD}/******/g" "$FILE"
+        fi
     fi
 }
 

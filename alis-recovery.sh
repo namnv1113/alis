@@ -39,6 +39,7 @@ set -e
 
 # Usage:
 # # loadkeys es
+# # iwctl --passphrase "[WIFI_KEY]" station [WIFI_INTERFACE] connect "[WIFI_ESSID]"          # (Optional) Connect to WIFI network. _ip link show_ to know WIFI_INTERFACE.
 # # curl https://raw.githubusercontent.com/picodotdev/alis/master/download.sh | bash, or with URL shortener curl -sL https://bit.ly/2F3CATp | bash
 # # vim alis-recovery.conf
 # # ./alis-recovery.sh
@@ -255,7 +256,7 @@ function prepare_partition() {
 
 function configure_network() {
     if [ -n "$WIFI_INTERFACE" ]; then
-        iwctl --passphrase "$WIFI_KEY" station $WIFI_INTERFACE connect $WIFI_ESSID
+        iwctl --passphrase "$WIFI_KEY" station $WIFI_INTERFACE connect "$WIFI_ESSID"
         sleep 10
     fi
 
