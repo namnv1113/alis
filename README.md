@@ -126,27 +126,6 @@ Boot from the latest <a href="https://www.archlinux.org/download/">original Arch
 # ./alis-recovery-reboot.sh        # Reboot the system
 ```
 
-### Test in VirtualBox with Packer
-
-VirtualBox and [Packer](https://packer.io/) are required.
-
-* Firmware: efi, bios
-* File system: ext4, btrfs, f2fs, xfs
-* Partition: luks, lvm
-* Bootloader: grub, refind, systemd
-* Desktop environment: gnome, kde, xfce, ...
-
-```
-$ ./alis-packer.sh -c alis-packer-efi-ext4-systemd.sh
-$ ./alis-packer.sh -c alis-packer-efi-ext4-systemd-gnome.sh
-$ ./alis-packer.sh -c alis-packer-efi-ext4-luks-lvm-grub.sh
-$ ./alis-packer.sh -c alis-packer-efi-btrfs-luks-lvm-systemd.sh
-$ ./alis-packer.sh -c alis-packer-efi-f2fs-luks-lvm-systemd.sh
-$ ./alis-packer.sh -c alis-packer-efi-ext4-grub-gnome.sh
-$ ./alis-packer.sh -c alis-packer-efi-ext4-grub-kde.sh
-$ ./alis-packer.sh -c alis-packer-efi-ext4-grub-xfce.sh
-```
-
 ### Video
 
 [![asciicast](https://asciinema.org/a/192880.png)](https://asciinema.org/a/192880)
